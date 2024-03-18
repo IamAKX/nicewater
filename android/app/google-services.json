@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "760711779945",
+    "project_id": "nicewaterweb",
+    "storage_bucket": "nicewaterweb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760711779945:android:2e88b55479cba2cdc9b4f8",
+        "android_client_info": {
+          "package_name": "com.rithvik.nice_water"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7Z31V-U1RTMoltTYE6G4nxNytg_v0JTY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MapModel {
+class ReportModel {
   String? id;
   GeoPoint? location;
   String? type;
@@ -12,7 +12,8 @@ class MapModel {
   String? comment;
   String? otherInfo;
   bool? status;
-  MapModel({
+  String? createdBy;
+  ReportModel({
     this.id,
     this.location,
     this.type,
@@ -22,9 +23,10 @@ class MapModel {
     this.comment,
     this.otherInfo,
     this.status,
+    this.createdBy,
   });
 
-  MapModel copyWith({
+  ReportModel copyWith({
     String? id,
     GeoPoint? location,
     String? type,
@@ -34,8 +36,9 @@ class MapModel {
     String? comment,
     String? otherInfo,
     bool? status,
+    String? createdBy,
   }) {
-    return MapModel(
+    return ReportModel(
       id: id ?? this.id,
       location: location ?? this.location,
       type: type ?? this.type,
@@ -45,6 +48,7 @@ class MapModel {
       comment: comment ?? this.comment,
       otherInfo: otherInfo ?? this.otherInfo,
       status: status ?? this.status,
+      createdBy: createdBy ?? this.createdBy,
     );
   }
 
@@ -78,12 +82,15 @@ class MapModel {
     if (status != null) {
       result.addAll({'status': status});
     }
+    if (createdBy != null) {
+      result.addAll({'createdBy': createdBy});
+    }
 
     return result;
   }
 
-  factory MapModel.fromMap(Map<String, dynamic> map) {
-    return MapModel(
+  factory ReportModel.fromMap(Map<String, dynamic> map) {
+    return ReportModel(
       id: map['id'],
       location: map['location'],
       type: map['type'],
@@ -93,24 +100,25 @@ class MapModel {
       comment: map['comment'],
       otherInfo: map['otherInfo'],
       status: map['status'],
+      createdBy: map['createdBy'],
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory MapModel.fromJson(String source) =>
-      MapModel.fromMap(json.decode(source));
+  factory ReportModel.fromJson(String source) =>
+      ReportModel.fromMap(json.decode(source));
 
   @override
   String toString() {
-    return 'MapModel(id: $id, location: $location, type: $type, createdOn: $createdOn, address: $address, city: $city, comment: $comment, otherInfo: $otherInfo, status: $status)';
+    return 'MapModel(id: $id, location: $location, type: $type, createdOn: $createdOn, address: $address, city: $city, comment: $comment, otherInfo: $otherInfo, status: $status, createdBy: $createdBy)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is MapModel &&
+    return other is ReportModel &&
         other.id == id &&
         other.location == location &&
         other.type == type &&
@@ -119,7 +127,8 @@ class MapModel {
         other.city == city &&
         other.comment == comment &&
         other.otherInfo == otherInfo &&
-        other.status == status;
+        other.status == status &&
+        other.createdBy == createdBy;
   }
 
   @override
@@ -132,6 +141,7 @@ class MapModel {
         city.hashCode ^
         comment.hashCode ^
         otherInfo.hashCode ^
-        status.hashCode;
+        status.hashCode ^
+        createdBy.hashCode;
   }
 }

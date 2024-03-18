@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:nice_water/models/map_filter_model.dart';
+import 'package:nice_water/models/reports_model.dart';
 import 'package:nice_water/screens/map/map_utils.dart';
 import 'package:nice_water/screens/report_waste/location_picker.dart';
+import 'package:nice_water/services/db_provider.dart';
+import 'package:nice_water/services/snakbar_service.dart';
 import 'package:nice_water/widgets/gaps.dart';
 import 'package:nice_water/widgets/input_field_light.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -54,7 +58,7 @@ class _CreateReportState extends State<CreateReport> {
   @override
   Widget build(BuildContext context) {
     wasteType.removeWhere((element) => element.id == 0);
-
+    SnackBarService.instance.buildContext = context;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -173,7 +177,31 @@ class _CreateReportState extends State<CreateReport> {
                       defaultPadding,
                     ),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        if (_addressCtrl.text.isEmpty ||
+                            _cityCtrl.text.isEmpty ||
+                            _commentCtrl.text.isEmpty ||
+                            selectedType == null) {
+                          SnackBarService.instance
+                              .showSnackBarError('All fields are mandatory');
+                          return;
+                        }
+
+                        ReportModel reportModel = ReportModel(
+                            address: _addressCtrl.text,
+                            city: _cityCtrl.text,
+                            comment: _commentCtrl.text,
+                            createdBy: '-1',
+                            createdOn: Timestamp.now(),
+                            type: selectedType?.type,
+                            location: GeoPoint(_initialCenter.latitude,
+                                _initialCenter.longitude),
+                            status: true,
+                            otherInfo: '');
+                        DbProvider.instance
+                            .createdWasteIncedent(reportModel)
+                            .then((value) => Navigator.pop(context));
+                      },
                       child: const Text('Create'),
                     )
                   ],
