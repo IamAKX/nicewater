@@ -6,12 +6,17 @@ import 'package:nice_water/utils/constants.dart';
 import 'package:nice_water/utils/theme.dart';
 import 'package:nice_water/widgets/gaps.dart';
 
-class SideMenu extends StatelessWidget {
+class SideMenu extends StatefulWidget {
   final ZoomDrawerController drawerController;
   final Function(int) switchMenu;
   const SideMenu(
       {super.key, required this.drawerController, required this.switchMenu});
 
+  @override
+  State<SideMenu> createState() => _SideMenuState();
+}
+
+class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,7 +53,7 @@ class SideMenu extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'John Doe',
+                        'Guest user',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   color: Colors.white,
@@ -56,7 +61,7 @@ class SideMenu extends StatelessWidget {
                                 ),
                       ),
                       Text(
-                        'john.doe@email.com',
+                        'Anonymous login',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: Colors.white60,
                             ),
@@ -69,8 +74,8 @@ class SideMenu extends StatelessWidget {
             verticalGap(defaultPadding * 3),
             TextButton.icon(
               onPressed: () {
-                switchMenu(0);
-                drawerController.toggle!();
+                widget.switchMenu(0);
+                widget.drawerController.toggle!();
               },
               icon: const Icon(
                 LineAwesomeIcons.map_marker,
@@ -85,8 +90,8 @@ class SideMenu extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: () {
-                switchMenu(1);
-                drawerController.toggle!();
+                widget.switchMenu(1);
+                widget.drawerController.toggle!();
               },
               icon: const Icon(
                 LineAwesomeIcons.trash,
@@ -101,8 +106,8 @@ class SideMenu extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: () {
-                switchMenu(2);
-                drawerController.toggle!();
+                widget.switchMenu(2);
+                widget.drawerController.toggle!();
               },
               icon: const Icon(
                 LineAwesomeIcons.cog,
@@ -118,7 +123,7 @@ class SideMenu extends StatelessWidget {
             const Spacer(),
             TextButton.icon(
               onPressed: () {
-                drawerController.toggle!();
+                widget.drawerController.toggle!();
               },
               icon: const Icon(
                 LineAwesomeIcons.alternate_sign_out,

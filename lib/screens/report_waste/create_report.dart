@@ -29,7 +29,7 @@ class _CreateReportState extends State<CreateReport> {
   final TextEditingController _addressCtrl = TextEditingController();
   final TextEditingController _cityCtrl = TextEditingController();
   final TextEditingController _commentCtrl = TextEditingController();
-  LatLng _initialCenter = LatLng(0, 0);
+  LatLng _initialCenter = LatLng(12.9716, 77.5946);
   List<MapFilterModel> wasteType = getMapFilters();
   MapFilterModel? selectedType;
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../utils/theme.dart';
 import '../map/map_round_buttons.dart';
@@ -57,8 +58,9 @@ class _LocationPickerState extends State<LocationPicker> {
                       height: 80.0,
                       point: _initialCenter,
                       child: const Icon(
-                        Icons.location_on,
-                        color: primaryColor,
+                        LineAwesomeIcons.map_pin,
+                        size: 40,
+                        color: Colors.red,
                       ),
                     ),
                 ],

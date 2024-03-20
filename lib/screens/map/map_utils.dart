@@ -41,3 +41,30 @@ List<MapFilterModel> getMapFilters() {
         selectedIconData: Icons.recycling),
   ];
 }
+
+IconData getPointerIconDateByType(String type) {
+  return getMapFilters()
+      .firstWhere((element) => element.type == type)
+      .iconData!;
+}
+
+String getFilterNameByType(String type) {
+  return getMapFilters().firstWhere((element) => element.type == type).name!;
+}
+
+Widget getPointerIconByType(String type) {
+  switch (type) {
+    case 'trash':
+      return const Icon(Icons.delete_outline);
+    case 'sewage':
+      return const Icon(Icons.fire_hydrant_alt_outlined);
+    case 'construction':
+      return const Icon(Icons.home_work_outlined);
+    case 'hazardous':
+      return const Icon(Icons.pest_control_outlined);
+    case 'organic':
+      return const Icon(Icons.recycling_outlined);
+    default:
+      return const Icon(Icons.location_on_outlined);
+  }
+}

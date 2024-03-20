@@ -1,14 +1,14 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:maps_launcher/maps_launcher.dart';
-import 'package:nice_water/models/map_filter_model.dart';
 import 'package:nice_water/screens/map/map_utils.dart';
 import 'package:nice_water/screens/report_waste/create_report.dart';
 import 'package:nice_water/utils/theme.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:nice_water/utils/timestamp_util.dart';
 
+import '../../models/reports_model.dart';
+import '../../services/db_provider.dart';
 import '../map/map_round_buttons.dart';
 
 class RepostWasteScreen extends StatefulWidget {
@@ -20,6 +20,21 @@ class RepostWasteScreen extends StatefulWidget {
 }
 
 class _RepostWasteScreenState extends State<RepostWasteScreen> {
+  List<ReportModel> reportList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => buildAllMarkers());
+  }
+
+  buildAllMarkers() async {
+    reportList.clear();
+    reportList = await DbProvider.instance
+        .getAllReport(getMapFilters().elementAt(0).type!);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +62,9 @@ class _RepostWasteScreenState extends State<RepostWasteScreen> {
                     top: 25, left: 100, right: defaultPadding),
                 child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(CreateReport.routePath);
+                    Navigator.of(context)
+                        .pushNamed(CreateReport.routePath)
+                        .then((value) => buildAllMarkers());
                   },
                   child: Text(
                     'ADD',
@@ -72,25 +89,26 @@ class _RepostWasteScreenState extends State<RepostWasteScreen> {
                 height: MediaQuery.of(context).size.height - 120,
                 child: ListView.separated(
                     itemBuilder: (context, index) {
-                      MapFilterModel item = getMapFilters()
-                          .elementAt(Random().nextInt(getMapFilters().length));
+                      ReportModel item = reportList.elementAt(index);
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: Colors.blue.withOpacity(0.2),
                           radius: 25,
                           child: Icon(
-                            item.iconData,
+                            getPointerIconDateByType(item.type!),
                             color: primaryColor,
                           ),
                         ),
-                        title: Text(item.name ?? ''),
-                        // isThreeLine: true,
+                        title: Text(getFilterNameByType(item.type!)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Kalyannagar, Bangalore'),
                             Text(
-                              '${2 * index + 1}d ago',
+                              item.address ?? '',
+                              maxLines: 3,
+                            ),
+                            Text(
+                              getTimesAgoFromTimestamp(item.createdOn!),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelMedium
@@ -108,8 +126,7 @@ class _RepostWasteScreenState extends State<RepostWasteScreen> {
                                   dialogType: DialogType.info,
                                   animType: AnimType.scale,
                                   title: 'Information',
-                                  desc:
-                                      '''Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.''',
+                                  desc: item.comment ?? '',
                                   btnOkOnPress: () {},
                                 ).show();
                               },
@@ -121,7 +138,8 @@ class _RepostWasteScreenState extends State<RepostWasteScreen> {
                             IconButton(
                               onPressed: () {
                                 MapsLauncher.launchCoordinates(
-                                    12.9716, 77.5946);
+                                    item.location!.latitude,
+                                    item.location!.longitude);
                               },
                               icon: const Icon(
                                 Icons.navigation_outlined,
@@ -138,7 +156,7 @@ class _RepostWasteScreenState extends State<RepostWasteScreen> {
                         indent: 70,
                       );
                     },
-                    itemCount: 100),
+                    itemCount: reportList.length),
               ),
             ),
           ],

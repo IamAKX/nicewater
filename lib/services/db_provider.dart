@@ -17,4 +17,22 @@ class DbProvider extends ChangeNotifier {
     reportModel.id = ref.id;
     await ref.set(reportModel.toMap());
   }
+
+  Future<List<ReportModel>> getAllReport(String type) async {
+    List<ReportModel> list = [];
+    QuerySnapshot<Map<String, dynamic>> querySnapshot;
+    if (type == 'all') {
+      querySnapshot = await _db.collection(wasteIncedentCollection).get();
+    } else {
+      querySnapshot = await _db
+          .collection(wasteIncedentCollection)
+          .where('type', isEqualTo: type)
+          .get();
+    }
+    list = querySnapshot.docs
+        .map((report) => ReportModel.fromMap(report.data()))
+        .toList();
+
+    return list;
+  }
 }

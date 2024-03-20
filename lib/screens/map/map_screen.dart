@@ -3,11 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:nice_water/models/map_filter_model.dart';
+import 'package:nice_water/models/reports_model.dart';
 import 'package:nice_water/screens/map/map_round_buttons.dart';
 import 'package:nice_water/screens/map/map_utils.dart';
+import 'package:nice_water/services/db_provider.dart';
 import 'package:nice_water/utils/theme.dart';
 import 'package:flutter_map_supercluster/flutter_map_supercluster.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -27,40 +29,46 @@ class _MapScreenState extends State<MapScreen> {
   int selectedFilterId = 0;
 
   // Map setup
-  static const LatLng _initialCenter = LatLng(12.9716, 77.5946);
+  LatLng _initialCenter = LatLng(12.9716, 77.5946);
   static const double _initialZoom = 7;
   final MapController mapController = MapController();
-  final SuperclusterImmutableController superclusterImmutableController =
-      SuperclusterImmutableController();
+  final SuperclusterMutableController superclusterImmutableController =
+      SuperclusterMutableController();
 
-  // Dummy marker
-  final Random _random = Random(42);
-  List<Marker> _markers = [];
+  List<Marker> markers = [];
+  List<ReportModel> reportList = [];
 
   @override
   void initState() {
     super.initState();
-    generateDummyMarkers();
-    getLocationPermission();
+    WidgetsBinding.instance.addPostFrameCallback((_) => initialLoad());
   }
 
-  generateDummyMarkers() {
-    _markers.clear();
+  initialLoad() async {
+    await getLocationPermission();
+    setState(() {});
+    buildAllMarkers();
+  }
 
-    _markers = List<Marker>.generate(
-      500,
-      (_) => Marker(
-        child: const Icon(
-          LineAwesomeIcons.map_pin,
-          color: primaryColor,
-        ),
-        point: LatLng(
-          _random.nextDouble() * 3 - 1.5 + _initialCenter.latitude,
-          _random.nextDouble() * 3 - 1.5 + _initialCenter.longitude,
-        ),
-      ),
-    );
-    debugPrint('length = ${_markers.length}');
+  buildAllMarkers() async {
+    markers.clear();
+    reportList.clear();
+    setState(() {});
+
+    reportList = await DbProvider.instance
+        .getAllReport(getMapFilters().elementAt(selectedFilterId).type!);
+
+    for (ReportModel model in reportList) {
+      Marker marker = Marker(
+          point: LatLng(model.location!.latitude, model.location!.longitude),
+          child: const Icon(
+            Icons.location_on,
+            color: Colors.blue,
+          ));
+      markers.add(marker);
+    }
+
+    superclusterImmutableController.replaceAll(markers);
     setState(() {});
   }
 
@@ -75,7 +83,7 @@ class _MapScreenState extends State<MapScreen> {
               margin: const EdgeInsets.symmetric(vertical: defaultPadding * 2),
               child: FlutterMap(
                 mapController: mapController,
-                options: const MapOptions(
+                options: MapOptions(
                   initialZoom: _initialZoom,
                   initialCenter: _initialCenter,
                 ),
@@ -85,25 +93,10 @@ class _MapScreenState extends State<MapScreen> {
                         'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
                     subdomains: ['a', 'b', 'c'],
                   ),
-                  SuperclusterLayer.immutable(
-                    initialMarkers: _markers,
+                  SuperclusterLayer.mutable(
+                    initialMarkers: markers,
                     indexBuilder: IndexBuilders.rootIsolate,
                     controller: superclusterImmutableController,
-
-                    // popupOptions: PopupOptions(
-                    //   popupDisplayOptions: PopupDisplayOptions(
-                    //     builder: (context, marker) {
-                    //       return showMarkerPopup(
-                    //           context,
-                    //           getMapFilters()
-                    //                   .elementAt(selectedFilterId)
-                    //                   .name ??
-                    //               '');
-                    //     },
-                    //   ),
-                    //   markerTapBehavior:
-                    //       MarkerTapBehavior.togglePopupAndHideRest(),
-                    // ),
                     builder:
                         (context, position, markerCount, extraClusterData) {
                       return Container(
@@ -167,8 +160,7 @@ class _MapScreenState extends State<MapScreen> {
             Align(
               alignment: Alignment.topLeft,
               child: Padding(
-                padding: const EdgeInsets.only(
-                    top: 30, left: 100, right: defaultPadding),
+                padding: const EdgeInsets.only(top: 30, left: 100, right: 100),
                 child: Text(
                   getMapFilters().elementAt(selectedFilterId).name ?? '',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -191,7 +183,9 @@ class _MapScreenState extends State<MapScreen> {
                     top: 25, left: 100, right: defaultPadding),
                 child: TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamed(CreateReport.routePath);
+                    Navigator.of(context)
+                        .pushNamed(CreateReport.routePath)
+                        .then((value) => buildAllMarkers());
                   },
                   child: Text(
                     'ADD',
@@ -229,8 +223,7 @@ class _MapScreenState extends State<MapScreen> {
                         });
                         mapController.move(_initialCenter, _initialZoom);
                         superclusterImmutableController.clear();
-                        generateDummyMarkers();
-                        superclusterImmutableController.replaceAll(_markers);
+                        buildAllMarkers();
                       },
                       child: Card(
                         shape: RoundedRectangleBorder(
@@ -271,8 +264,13 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void getLocationPermission() async {
+  Future<void> getLocationPermission() async {
     PermissionStatus status = await Permission.location.request();
+    if (status.isGranted) {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.bestForNavigation);
+      _initialCenter = LatLng(position.latitude, position.longitude);
+    }
     debugPrint('status : ${status.isGranted}');
   }
 }
