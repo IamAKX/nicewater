@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:nice_water/screens/onboarding/login.dart';
+import 'package:nice_water/services/auth_provider.dart';
 import 'package:nice_water/widgets/input_field_dark.dart';
 import 'package:nice_water/widgets/primary_button.dart';
+import 'package:provider/provider.dart';
 
+import '../../services/snakbar_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/gaps.dart';
 
@@ -21,6 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordCtrl = TextEditingController();
 
   bool hidePassword = true;
+  late AuthProvider _auth;
 
   togglePasswordVisibility() {
     setState(() {
@@ -30,6 +34,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SnackBarService.instance.buildContext = context;
+    _auth = Provider.of<AuthProvider>(context);
     return Scaffold(
       body: getBody(context),
     );
@@ -105,10 +111,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 verticalGap(defaultPadding * 2),
                 PrimaryButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    _auth
+                        .registerUserWithEmailAndPassword(
+                            _nameCtrl.text, _emailCtrl.text, _passwordCtrl.text)
+                        .then((value) {
+                      if (value) {
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                            LoginScreen.routePath, (route) => false);
+                      }
+                    });
+                  },
                   label: 'Register',
-                  isDisabled: false,
-                  isLoading: false,
+                  isDisabled: _auth.status == AuthStatus.authenticating,
+                  isLoading: _auth.status == AuthStatus.authenticating,
                 ),
                 verticalGap(defaultPadding),
                 Row(

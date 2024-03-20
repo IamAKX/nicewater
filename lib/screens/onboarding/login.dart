@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:nice_water/screens/home_container/home_container.dart';
 import 'package:nice_water/screens/onboarding/reset_password.dart';
+import 'package:nice_water/services/auth_provider.dart';
 import 'package:nice_water/utils/theme.dart';
+import 'package:provider/provider.dart';
 
+import '../../services/snakbar_service.dart';
 import '../../widgets/gaps.dart';
 import '../../widgets/input_field_dark.dart';
 import '../../widgets/primary_button.dart';
@@ -22,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordCtrl = TextEditingController();
 
   bool hidePassword = true;
-
+  late AuthProvider _auth;
   togglePasswordVisibility() {
     setState(() {
       hidePassword = !hidePassword;
@@ -31,6 +34,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SnackBarService.instance.buildContext = context;
+    _auth = Provider.of<AuthProvider>(context);
     return Scaffold(
       body: getBody(context),
     );
@@ -99,12 +104,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 verticalGap(defaultPadding * 2),
                 PrimaryButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                        HomeContainer.routePath, (route) => false);
+                    _auth
+                        .loginUserWithEmailAndPassword(
+                            _emailCtrl.text, _passwordCtrl.text)
+                        .then((value) {
+                      if (value) {
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                            HomeContainer.routePath, (route) => false);
+                      }
+                    });
                   },
                   label: 'Login',
-                  isDisabled: false,
-                  isLoading: false,
+                  isDisabled: _auth.status == AuthStatus.authenticating,
+                  isLoading: _auth.status == AuthStatus.authenticating,
                 ),
                 verticalGap(defaultPadding),
                 TextButton(

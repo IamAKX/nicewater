@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
-import 'package:nice_water/models/user_model.dart';
-import 'package:nice_water/utils/constants.dart';
+import 'package:nice_water/screens/onboarding/login.dart';
 import 'package:nice_water/utils/theme.dart';
 import 'package:nice_water/widgets/input_field_light.dart';
+import 'package:nice_water/widgets/side_menu.dart';
+import 'package:provider/provider.dart';
 
+import '../../services/auth_provider.dart';
+import '../../services/snakbar_service.dart';
 import '../../widgets/gaps.dart';
 import '../../widgets/user_profile_image.dart';
 import '../map/map_round_buttons.dart';
@@ -20,17 +23,25 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  UserModel userModel = UserModel(
-      name: 'John Doe',
-      emai: 'john.doe@email.com',
-      image: default_user_image,
-      status: true);
   bool isImageUploading = false;
   bool hidePassword = true;
+  late AuthProvider _auth;
 
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => loadUserData());
+  }
+
+  loadUserData() async {
+    await _auth.user?.reload();
+    _nameCtrl.text = _auth.user?.displayName ?? '';
+    _emailCtrl.text = _auth.user?.email ?? '';
+  }
 
   togglePasswordVisibiliy() {
     setState(() {
@@ -40,6 +51,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SnackBarService.instance.buildContext = context;
+    _auth = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -65,23 +79,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
-                        child: Text('Save'),
-                      ),
-                    ),
-                    verticalGap(defaultPadding),
-                    getSubTitle(context, 'Update Email'),
-                    InputFieldLight(
-                      hint: 'Email',
-                      controller: _emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
-                      obscure: false,
-                      icon: LineAwesomeIcons.at,
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _auth.updateName(_nameCtrl.text).then((value) {
+                            loadUserData();
+                            SideMenu.reloadSide!();
+                          });
+                        },
                         child: Text('Save'),
                       ),
                     ),
@@ -98,7 +101,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _auth
+                              .updatePassword(_passwordCtrl.text)
+                              .then((value) {
+                            loadUserData();
+                            _auth.logoutUser();
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                LoginScreen.routePath, (route) => false);
+                          });
+                        },
                         child: Text('Save'),
                       ),
                     ),
@@ -158,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100),
               child: UserProfileImage(
-                userModel: userModel,
+                userImage: _auth.user?.photoURL,
                 height: 100,
                 width: 100,
               ),
@@ -187,41 +199,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final ImagePicker picker = ImagePicker();
                     final XFile? image =
                         await picker.pickImage(source: ImageSource.gallery);
-                    if (image != null) {
-                      // File imageFile = File(image.path);
-                      // setState(() {
-                      //   isImageUploading = true;
-                      // });
-                      // _storageProvider
-                      //     .uploadProfileImage(
-                      //         imageFile, userModel?.id ?? -1)
-                      //     .then((value) async {
-                      //   userModel?.image = value;
-                      //   _api
-                      //       .updateUser(userModel?.toMap() ?? {},
-                      //           userModel?.id ?? -1)
-                      //       .then((value) {
-                      //     isImageUploading = false;
-                      //     loadScreen();
-                      //   });
-                      // });
-                    }
+                    if (image != null) {}
                     return;
                   case 'delete':
-                    userModel.image = '';
-                    // _api
-                    //     .updateUser(
-                    //         userModel?.toMap() ?? {}, userModel?.id ?? -1)
-                    //     .then((value) {
-                    //   if (value) {
-                    //     loadScreen();
-                    //     SnackBarService.instance
-                    //         .showSnackBarSuccess('Profile image removed');
-                    //   } else {
-                    //     SnackBarService.instance
-                    //         .showSnackBarError('Failed to update');
-                    //   }
-                    // });
+                    // userModel.image = '';
+
                     return;
                 }
               },
