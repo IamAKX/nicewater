@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:easy_tooltip/easy_tooltip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
@@ -60,11 +61,16 @@ class _MapScreenState extends State<MapScreen> {
 
     for (ReportModel model in reportList) {
       Marker marker = Marker(
-          point: LatLng(model.location!.latitude, model.location!.longitude),
+        point: LatLng(model.location!.latitude, model.location!.longitude),
+        child: EasyTooltip(
+          text: '${getFilterNameByType(model.type ?? '')}\n${model.comment}',
+          backgroundColor: primaryColor,
           child: const Icon(
             Icons.location_on,
             color: Colors.blue,
-          ));
+          ),
+        ),
+      );
       markers.add(marker);
     }
 
@@ -97,6 +103,11 @@ class _MapScreenState extends State<MapScreen> {
                     initialMarkers: markers,
                     indexBuilder: IndexBuilders.rootIsolate,
                     controller: superclusterImmutableController,
+                    onMarkerTap: (marker) {},
+                    popupOptions: PopupOptions(
+                      markerTapBehavior:
+                          MarkerTapBehavior.togglePopupAndHideRest(),
+                    ),
                     builder:
                         (context, position, markerCount, extraClusterData) {
                       return Container(
