@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 
+import '../../services/auth_provider.dart';
+import '../../services/snakbar_service.dart';
 import '../../utils/theme.dart';
 import '../../widgets/gaps.dart';
 import '../../widgets/input_field_dark.dart';
@@ -16,9 +19,12 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final TextEditingController _emailCtrl = TextEditingController();
+  late AuthProvider _auth;
 
   @override
   Widget build(BuildContext context) {
+    SnackBarService.instance.buildContext = context;
+    _auth = Provider.of<AuthProvider>(context);
     return Scaffold(
       body: getBody(context),
     );
@@ -84,7 +90,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
                 verticalGap(defaultPadding * 2),
                 PrimaryButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (_emailCtrl.text.isEmpty) {
+                      SnackBarService.instance
+                          .showSnackBarError('Enter registered email');
+                      return;
+                    }
+                    _auth
+                        .resetPasswordLink(_emailCtrl.text)
+                        .then((value) => Navigator.pop(context));
+                  },
                   label: 'Proceed',
                   isDisabled: false,
                   isLoading: false,

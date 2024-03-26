@@ -246,4 +246,29 @@ class AuthProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> resetPasswordLink(String email) async {
+    if (!isEmail(email)) {
+      SnackBarService.instance.showSnackBarError('Enter valid email');
+      return false;
+    }
+
+    status = AuthStatus.authenticating;
+    notifyListeners();
+    try {
+      _auth.sendPasswordResetEmail(email: email);
+      SnackBarService.instance.showSnackBarSuccess(
+          'We have sent a verification link to your email.');
+
+      status = AuthStatus.authenticated;
+
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      SnackBarService.instance.showSnackBarError(e.message!);
+      status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    }
+  }
 }

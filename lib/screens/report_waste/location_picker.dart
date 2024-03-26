@@ -4,7 +4,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../utils/theme.dart';
 import '../map/map_round_buttons.dart';
 
 class LocationPicker extends StatefulWidget {

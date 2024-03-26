@@ -87,7 +87,8 @@ class _CreateReportState extends State<CreateReport> {
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: SizedBox(
+              child: Container(
+                margin: const EdgeInsets.only(top: 80),
                 height: MediaQuery.of(context).size.height - 120,
                 child: ListView(
                   padding: const EdgeInsets.all(defaultPadding),

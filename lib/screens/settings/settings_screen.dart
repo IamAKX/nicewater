@@ -61,7 +61,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Align(
               alignment: Alignment.bottomCenter,
-              child: SizedBox(
+              child: Container(
+                margin: EdgeInsets.only(top: 70),
                 height: MediaQuery.of(context).size.height - 120,
                 child: ListView(
                   padding: const EdgeInsets.all(defaultPadding),
